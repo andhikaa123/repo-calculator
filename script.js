@@ -1,24 +1,31 @@
 let lastOperator = '';
+const operators = ['+', '-', '*', '/'];
+
+
 
 function appendToDisplay(value) {
     const display = document.forms["myForm"].display;
-    const operators = ['+', '-', '*', '/'];
+    let isToggleClicked = false;
 
-    if (value === '-/+' && display.value) {
-        const lastChar = display.value.slice(-1);
+    if (value === '-/+' && display.value && !isToggleClicked) {
+        // Toggle the sign of the entire expression
+        const expression = display.value;
+        const reversedExpression = expression.split('').reverse().join('');
+        const match = reversedExpression.match(/(-?\d*\.?\d+)/);
+    
+        if (match) {
+            const number = match[1];
+            const reversedNumber = number.split('').reverse().join('');
+            const updatedExpression = expression.replace(number, (number.startsWith('-') ? reversedNumber.slice(1) : '-' + reversedNumber));
+            display.value = updatedExpression;
 
-        if (lastChar === '(' || operators.includes(lastChar)) {
-            // If the last character is '(' or an operator, append '-'
-            display.value += '-';
-        } 
-        else {
-            // Otherwise, toggle the sign of the last number
-            const lastOperatorIndex = display.value.match(/[-+*/]/g)?.pop() || 0;
-            const lastNumber = display.value.slice(lastOperatorIndex);
-            const updatedValue = (lastNumber.startsWith('-') ? lastNumber.slice(1) : '-' + lastNumber);
-            display.value = display.value.slice(0, lastOperatorIndex) + updatedValue;
+            // Set isToggleClicked to true
+            isToggleClicked = true;
         }
-    } 
+    } else if (!['-/+'].includes(value)) {
+        isToggleClicked = false;
+    }
+
     else if (value === '%' && display.value) {
         const lastNumber = parseFloat(display.value.slice(display.value.lastIndexOf(operators[0]) + 1));
         if (!isNaN(lastNumber)) {
@@ -77,7 +84,6 @@ function deleteLastChar() {
 
     display.value = display.value.slice(0, -1);
 }
-
 function calculateResult() {
     const display = document.forms["myForm"].display;
     let result = eval(display.value);
